@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-base-700/60;
+  }
+  body {
+    @apply antialiased;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(124, 126, 248, 0.10), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(52, 211, 153, 0.06), transparent 55%),
+      #05060a;
+    background-attachment: fixed;
+  }
+  ::selection {
+    background-color: rgba(124, 126, 248, 0.35);
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-base-600 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-base-500;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-base-900/70 border border-base-700/70 rounded-2xl shadow-card backdrop-blur-sm;
+  }
+  .card-hover {
+    @apply transition-all duration-200 hover:border-accent-500/40 hover:shadow-glow;
+  }
+  .skeleton {
+    @apply bg-gradient-to-r from-base-800 via-base-700 to-base-800 bg-[length:200%_100%] animate-shimmer rounded-md;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-2.5 text-sm font-semibold text-white shadow-glow transition-all hover:bg-accent-400 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-base-600 bg-base-800/80 px-4 py-2.5 text-sm font-medium text-slate-200 transition-all hover:border-base-500 hover:bg-base-700/80 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .input-field {
+    @apply w-full rounded-xl border border-base-600 bg-base-900/80 px-3.5 py-2.5 text-sm text-slate-200 placeholder:text-slate-500 outline-none transition-colors focus:border-accent-500/60 focus:ring-2 focus:ring-accent-500/20;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-accent-400 via-accent-500 to-emerald-400 bg-clip-text text-transparent;
+  }
+  .font-tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
