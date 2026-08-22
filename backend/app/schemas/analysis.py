@@ -3,6 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas.file_metric import FileRiskRead
+
 
 class AnalysisRunRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -37,7 +39,7 @@ class HealthSummary(BaseModel):
     model_type: Optional[str] = None
     model_version: Optional[str] = None
     last_analyzed_at: Optional[datetime] = None
-    top_risky_files: list["FileRiskRead"]
+    top_risky_files: list[FileRiskRead]
 
 
 class TrendPoint(BaseModel):
@@ -75,8 +77,3 @@ class AnalyticsResponse(BaseModel):
     training_samples: Optional[int] = None
     feature_importance: dict[str, float]
     correlations: list[CorrelationEntry]
-
-
-from app.schemas.file_metric import FileRiskRead  # noqa: E402
-
-HealthSummary.model_rebuild()
