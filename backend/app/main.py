@@ -18,10 +18,12 @@ app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/health")
+@app.head("/health")
 def health():
     return {"status": "ok"}
 
 
 @app.get("/")
+@app.head("/")
 def root():
     return {"name": settings.APP_NAME, "docs": "/docs"}

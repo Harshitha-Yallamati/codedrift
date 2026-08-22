@@ -342,7 +342,7 @@ def _create_pull_requests(db, repository: Repository, latest_run: AnalysisRun, f
         )
 
 
-def seed() -> None:
+def seed(force: bool = False) -> None:
     db = SessionLocal()
     try:
         user = db.query(User).filter(User.username == "demo").first()
@@ -352,6 +352,10 @@ def seed() -> None:
             db.commit()
             db.refresh(user)
         else:
+            existing_count = db.query(Repository).filter(Repository.user_id == user.id).count()
+            if existing_count >= len(REPO_SPECS) and not force:
+                print(f"Demo data already present ({existing_count} repos) — skipping reseed.")
+                return
             db.query(Repository).filter(Repository.user_id == user.id).delete()
             db.commit()
 
