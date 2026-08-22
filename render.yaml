@@ -1,3 +1,17 @@
+# Render Blueprint. Note: the live deployment for this project was provisioned via
+# Render's MCP tools, which only support the native (non-Docker) runtimes for
+# web services/static sites. This blueprint mirrors that same topology so a
+# dashboard "New > Blueprint" import reproduces it. The `backend/Dockerfile` is
+# still the source of truth for local `docker compose` dev and for anyone who
+# prefers a Docker-based Render deploy via the dashboard directly.
+#
+# Limitation: this MCP tool surface has no "background worker" service type, so
+# the Celery worker runs as a second process inside the backend web service's
+# startCommand (`celery ... --detach`) rather than as its own Render service.
+# For a "real" production topology, split it into a dedicated worker service
+# (see docker-compose.yml, which does keep them separate) once you're deploying
+# via the dashboard directly.
+
 databases:
   - name: codedrift-postgres
     plan: free
@@ -12,11 +26,17 @@ services:
 
   - type: web
     name: codedrift-backend
-    runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    runtime: python
     plan: free
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: >
+      cd backend && alembic upgrade head && python -m app.seed.sample_data &&
+      celery -A app.core.celery_app worker --loglevel=info --detach
+      --pidfile=/tmp/celery_worker.pid --logfile=/tmp/celery_worker.log &&
+      uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.10
       - key: DATABASE_URL
         fromDatabase:
           name: codedrift-postgres
@@ -41,42 +61,7 @@ services:
       - key: FRONTEND_URL
         sync: false
       - key: MODEL_STORAGE_DIR
-        value: /data/models
-    preDeployCommand: alembic upgrade head && python -m app.seed.sample_data
-
-  - type: worker
-    name: codedrift-worker
-    runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
-    dockerCommand: celery -A app.core.celery_app worker --loglevel=info
-    plan: free
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: codedrift-postgres
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          name: codedrift-redis
-          type: keyvalue
-          property: connectionString
-      - key: SECRET_KEY
-        sync: false
-      - key: FERNET_KEY
-        sync: false
-      - key: GITHUB_CLIENT_ID
-        sync: false
-      - key: GITHUB_CLIENT_SECRET
-        sync: false
-      - key: GITHUB_OAUTH_REDIRECT_URI
-        sync: false
-      - key: GITHUB_WEBHOOK_SECRET
-        sync: false
-      - key: FRONTEND_URL
-        sync: false
-      - key: MODEL_STORAGE_DIR
-        value: /data/models
+        value: /tmp/codedrift-models
 
   - type: web
     name: codedrift-frontend

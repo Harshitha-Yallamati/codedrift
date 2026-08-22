@@ -76,4 +76,7 @@ cd backend && pip install -r requirements.txt && pytest
 
 ## Deployment
 
-`render.yaml` documents the target topology (Postgres, Key Value store, backend web service, Celery worker, static frontend) for Render's Blueprint deploys.
+Live on Render: Postgres + Key Value (Redis) + a Python-runtime backend web service + a static frontend site. `render.yaml` documents this topology for Render's Blueprint import. Two notes on how the live deploy differs from local `docker compose`:
+
+- The backend runs as Render's native Python runtime rather than the Dockerfile (Render's Blueprint/MCP tooling for web services doesn't support Docker in this project's setup) — `backend/Dockerfile` remains the source of truth for local dev and any Docker-based deploy done via the Render dashboard directly.
+- The Celery worker runs as a second process inside the backend service (`celery ... --detach`) rather than as its own service, since a standalone background-worker service wasn't available through the tooling used to provision this deploy. `docker-compose.yml` keeps them as separate `backend`/`worker` services for local dev and as the reference topology for a "real" production split.
