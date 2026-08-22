@@ -18,4 +18,10 @@ celery_app.conf.update(
     task_track_started=True,
     worker_prefetch_multiplier=1,
     broker_connection_retry_on_startup=True,
+    # Free-tier deploy runs the worker in the same 512MB container as the API.
+    # Celery's default prefork pool forks one child per CPU core, each loading
+    # its own copy of xgboost/pandas/sklearn — solo + concurrency=1 keeps a
+    # single process instead of multiplying that footprint and OOM-killing the container.
+    worker_pool="solo",
+    worker_concurrency=1,
 )
