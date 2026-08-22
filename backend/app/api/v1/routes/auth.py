@@ -56,7 +56,10 @@ def github_callback(code: str, db: Session = Depends(get_db)):
     db.refresh(user)
 
     jwt_token = create_access_token(user.id)
-    return RedirectResponse(f"{settings.FRONTEND_URL}/auth/callback?token={jwt_token}")
+    # Redirect to "/" (not "/auth/callback"): the static-site host has no SPA
+    # rewrite rule configured, so a deep path 404s on cold load. App.tsx checks
+    # for ?token= at the root and handles the callback regardless of path.
+    return RedirectResponse(f"{settings.FRONTEND_URL}/?token={jwt_token}")
 
 
 @router.post("/auth/demo", response_model=TokenResponse)

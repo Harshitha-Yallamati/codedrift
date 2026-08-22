@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useSearchParams } from "react-router-dom";
 import { RequireAuth } from "@/lib/authContext";
 import { LandingPage } from "@/pages/LandingPage";
 import { LoginPage } from "@/pages/LoginPage";
@@ -16,6 +16,14 @@ import { AnalyticsPage } from "@/pages/AnalyticsPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 
 export default function App() {
+  const [params] = useSearchParams();
+  // Render's static-site host doesn't rewrite unknown paths to index.html, so the
+  // OAuth backend redirects to "/" with the token instead of a deep "/auth/callback"
+  // route — handle it here regardless of path rather than depending on that route matching.
+  if (params.get("token")) {
+    return <AuthCallbackPage />;
+  }
+
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
