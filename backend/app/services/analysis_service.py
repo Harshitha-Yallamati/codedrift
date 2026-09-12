@@ -16,6 +16,7 @@ from app.analysis.bugfix_classifier import is_bug_fix_commit
 from app.analysis.churn import FileHistory, FileTouch, build_file_histories
 from app.analysis.complexity import compute_complexity, detect_language
 from app.analysis.coupling import compute_coupling_scores
+from app.analysis.exclusions import is_excluded_path
 from app.core.security import decrypt_token
 from app.ml import heuristic as heuristic_ml
 from app.ml import model_registry
@@ -87,6 +88,8 @@ def run_analysis(db: Session, repository: Repository, branch: str | None = None,
                 detail = gh.get_commit_detail(repository.full_name, sha)
                 files = detail.get("files") or []
                 file_paths = [f["filename"] for f in files]
+                analyzable_files = [f for f in files if not is_excluded_path(f["filename"])]
+                analyzable_paths = [f["filename"] for f in analyzable_files]
 
                 if sha not in existing_shas:
                     db.add(
@@ -106,7 +109,7 @@ def run_analysis(db: Session, repository: Repository, branch: str | None = None,
                     )
                     existing_shas.add(sha)
 
-                for f in files:
+                for f in analyzable_files:
                     touch = FileTouch(
                         sha=sha,
                         author=author_name,
@@ -116,7 +119,7 @@ def run_analysis(db: Session, repository: Repository, branch: str | None = None,
                         is_bug_fix=bug_fix,
                     )
                     commit_touches.append((sha, [f["filename"]], touch))
-                commit_file_lists.append(file_paths)
+                commit_file_lists.append(analyzable_paths)
 
             db.flush()
 
