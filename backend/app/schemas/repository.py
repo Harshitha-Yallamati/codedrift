@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class RepositoryRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, protected_namespaces=())
 
     id: int
     full_name: str
@@ -20,6 +20,8 @@ class RepositoryRead(BaseModel):
     health_score: Optional[float] = None
     risk_category_counts: Optional[dict] = None
     latest_run_id: Optional[int] = None
+    model_type: Optional[str] = None
+    files_analyzed: Optional[int] = None
 
 
 class RepositoryConnect(BaseModel):

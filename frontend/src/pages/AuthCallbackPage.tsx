@@ -13,7 +13,9 @@ export function AuthCallbackPage() {
       navigate("/login", { replace: true });
       return;
     }
-    loginWithToken(token).then(() => navigate("/dashboard", { replace: true }));
+    loginWithToken(token)
+      .then(() => navigate("/dashboard", { replace: true }))
+      .catch(() => navigate("/login?error=1", { replace: true }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

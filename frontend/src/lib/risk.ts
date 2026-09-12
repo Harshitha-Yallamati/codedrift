@@ -32,6 +32,11 @@ export function formatPercent(value: number): string {
   return `${Math.round(value * 100)}%`;
 }
 
+/** Standard wording so probability is never presented as certainty. */
+export function formatPredictedRisk(value: number): string {
+  return `Predicted defect risk: ${Math.round(value * 100)}%`;
+}
+
 export function formatRelativeDate(iso: string | null): string {
   if (!iso) return "never";
   const date = new Date(iso);

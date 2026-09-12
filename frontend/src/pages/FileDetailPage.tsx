@@ -1,12 +1,14 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { FileCode2, Users, GitCommit, Clock, Link2 } from "lucide-react";
+import { FileCode2, Users, GitCommit, Clock, Link2, Lightbulb } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { RiskBadge } from "@/components/RiskBadge";
 import { ChartSkeleton } from "@/components/skeletons/Skeletons";
+import { ErrorState } from "@/components/ErrorState";
 import { filesApi } from "@/lib/api";
-import { formatDate, formatPercent } from "@/lib/risk";
+import { formatDate, formatPercent, formatPredictedRisk } from "@/lib/risk";
+import { generateRecommendation } from "@/lib/recommendations";
 import { CHART_COLORS, tooltipStyle } from "@/components/charts/ChartTheme";
 
 const STAT_ITEMS = [
@@ -25,7 +27,18 @@ export function FileDetailPage() {
   const id = Number(repoId);
   const fmId = Number(fileMetricId);
 
-  const { data, isLoading } = useQuery({ queryKey: ["file", id, fmId], queryFn: () => filesApi.detail(id, fmId) });
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ["file", id, fmId],
+    queryFn: () => filesApi.detail(id, fmId),
+  });
+
+  if (isError) {
+    return (
+      <AppShell title="File Detail">
+        <ErrorState description="Couldn't load this file's details." onRetry={() => refetch()} />
+      </AppShell>
+    );
+  }
 
   if (isLoading || !data) {
     return (
@@ -37,6 +50,7 @@ export function FileDetailPage() {
 
   const { file, history } = data;
   const chartData = history.map((h) => ({ ...h, label: formatDate(h.started_at) }));
+  const recommendation = generateRecommendation(file);
 
   return (
     <AppShell title="File Detail">
@@ -56,9 +70,19 @@ export function FileDetailPage() {
             <p className="text-xs uppercase tracking-wider text-slate-500">Why this score?</p>
             <p className="mt-1.5 text-sm leading-relaxed text-slate-300">{file.risk_prediction.explanation}</p>
             <p className="mt-2 text-xs text-slate-500">
-              {formatPercent(file.risk_prediction.defect_probability)} predicted defect probability · scored by{" "}
+              {formatPredictedRisk(file.risk_prediction.defect_probability)} · analysis engine:{" "}
               {file.risk_prediction.model_type === "xgboost" ? "XGBoost model" : "heuristic fallback"} ({file.risk_prediction.model_version})
             </p>
+          </div>
+        )}
+
+        {recommendation && (
+          <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-accent-500/20 bg-accent-500/5 p-4">
+            <Lightbulb size={16} className="mt-0.5 shrink-0 text-accent-400" />
+            <div>
+              <p className="text-xs uppercase tracking-wider text-accent-400">Recommendation</p>
+              <p className="mt-1 text-sm leading-relaxed text-slate-300">{recommendation}</p>
+            </div>
           </div>
         )}
 

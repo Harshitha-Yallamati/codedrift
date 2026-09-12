@@ -3,18 +3,25 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Github, Terminal, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
 import { authApi } from "@/lib/api";
+import { InlineError, extractErrorMessage } from "@/components/ErrorState";
 
 export function LoginPage() {
   const { loginDemo } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(
+    params.get("error") ? "Sign-in failed or your session expired. Please try again." : null
+  );
 
   const handleDemo = async () => {
     setLoading(true);
+    setError(null);
     try {
       await loginDemo();
       navigate("/dashboard");
+    } catch (err) {
+      setError(extractErrorMessage(err, "Couldn't start the demo right now. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -37,6 +44,12 @@ export function LoginPage() {
         <p className="mt-1.5 text-center text-sm text-slate-500">
           Connect a GitHub repository, or explore the live demo with pre-seeded data.
         </p>
+
+        {error && (
+          <div className="mt-5">
+            <InlineError message={error} />
+          </div>
+        )}
 
         <div className="mt-7 space-y-3">
           <a href={authApi.githubLoginUrl()} className="btn-primary w-full">

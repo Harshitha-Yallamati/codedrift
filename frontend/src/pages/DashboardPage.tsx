@@ -5,10 +5,16 @@ import { AppShell } from "@/components/AppShell";
 import { RepoCard } from "@/components/RepoCard";
 import { RepoGridSkeleton } from "@/components/skeletons/Skeletons";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 import { repoApi } from "@/lib/api";
 
 export function DashboardPage() {
-  const { data: repos, isLoading } = useQuery({ queryKey: ["repos"], queryFn: repoApi.list });
+  const {
+    data: repos,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({ queryKey: ["repos"], queryFn: repoApi.list });
 
   return (
     <AppShell
@@ -21,6 +27,8 @@ export function DashboardPage() {
     >
       {isLoading ? (
         <RepoGridSkeleton />
+      ) : isError ? (
+        <ErrorState description="Couldn't load your repositories." onRetry={() => refetch()} />
       ) : !repos || repos.length === 0 ? (
         <EmptyState
           icon={FolderGit2}

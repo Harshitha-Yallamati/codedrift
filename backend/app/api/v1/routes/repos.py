@@ -14,9 +14,35 @@ from app.services.github_service import GitHubAPIError, GitHubClient
 router = APIRouter(tags=["repositories"])
 
 
+def _attach_latest_run_info(db: Session, repos: list[Repository]) -> list[RepositoryRead]:
+    from app.models.analysis_run import AnalysisRun
+
+    run_ids = [r.latest_run_id for r in repos if r.latest_run_id]
+    runs_by_id = {}
+    if run_ids:
+        rows = (
+            db.query(AnalysisRun.id, AnalysisRun.model_type, AnalysisRun.files_analyzed)
+            .filter(AnalysisRun.id.in_(run_ids))
+            .all()
+        )
+        runs_by_id = {row.id: row for row in rows}
+
+    result = []
+    for repo in repos:
+        read = RepositoryRead.model_validate(repo)
+        run = runs_by_id.get(repo.latest_run_id) if repo.latest_run_id else None
+        if run:
+            read = read.model_copy(update={"model_type": run.model_type, "files_analyzed": run.files_analyzed})
+        result.append(read)
+    return result
+
+
 @router.get("/repos", response_model=list[RepositoryRead])
 def list_repos(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return db.query(Repository).filter(Repository.user_id == current_user.id).order_by(Repository.created_at.desc()).all()
+    repos = (
+        db.query(Repository).filter(Repository.user_id == current_user.id).order_by(Repository.created_at.desc()).all()
+    )
+    return _attach_latest_run_info(db, repos)
 
 
 @router.get("/repos/github", response_model=list[GitHubRepoOption])
@@ -70,8 +96,8 @@ def connect_repo(
 
 
 @router.get("/repos/{repo_id}", response_model=RepositoryRead)
-def get_repo(repository: Repository = Depends(get_owned_repository)):
-    return repository
+def get_repo(repository: Repository = Depends(get_owned_repository), db: Session = Depends(get_db)):
+    return _attach_latest_run_info(db, [repository])[0]
 
 
 @router.delete("/repos/{repo_id}")

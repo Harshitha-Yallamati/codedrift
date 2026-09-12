@@ -25,12 +25,10 @@ export default {
           600: "#5457e0",
           glow: "#7c7ef8",
         },
-        risk: {
-          low: "#34d399",
-          medium: "#fbbf24",
-          high: "#fb923c",
-          critical: "#f87171",
-        },
+        // Risk colors are the single source of truth in src/lib/risk.ts (RISK_COLORS /
+        // RISK_BADGE_CLASSES) since components read hex values dynamically from data;
+        // no `risk.*` Tailwind classes are used anywhere, so keeping a second copy here
+        // would just drift out of sync.
       },
       backgroundImage: {
         "grid-fade":

@@ -1,4 +1,4 @@
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { CorrelationEntry } from "@/types/api";
 import { CHART_COLORS, tooltipStyle } from "@/components/charts/ChartTheme";
 
@@ -33,6 +33,7 @@ export function CorrelationChart({ correlations }: { correlations: CorrelationEn
           {data.map((d, i) => (
             <Cell key={i} fill={d.value >= 0 ? "#fb923c" : CHART_COLORS.accent2} />
           ))}
+          <LabelList dataKey="value" position="right" formatter={(v: number) => v.toFixed(2)} fill="#94a3b8" fontSize={11} />
         </Bar>
       </BarChart>
     </ResponsiveContainer>

@@ -5,6 +5,7 @@ import { Bot, Check, Copy } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { RiskBadge } from "@/components/RiskBadge";
 import { ChartSkeleton } from "@/components/skeletons/Skeletons";
+import { ErrorState } from "@/components/ErrorState";
 import { prApi } from "@/lib/api";
 import { formatPercent } from "@/lib/risk";
 
@@ -14,13 +15,21 @@ export function PRDetailPage() {
   const pId = Number(prId);
   const [copied, setCopied] = useState(false);
 
-  const { data: pr, isLoading } = useQuery({ queryKey: ["pr", id, pId], queryFn: () => prApi.get(id, pId) });
+  const { data: pr, isLoading, isError, refetch } = useQuery({ queryKey: ["pr", id, pId], queryFn: () => prApi.get(id, pId) });
   const { data: preview } = useQuery({
     queryKey: ["pr-preview", id, pId],
     queryFn: () => prApi.commentPreview(id, pId),
     enabled: !!pr?.analyzed_at,
     retry: false,
   });
+
+  if (isError) {
+    return (
+      <AppShell title="Pull Request Detail">
+        <ErrorState description="Couldn't load this pull request." onRetry={() => refetch()} />
+      </AppShell>
+    );
+  }
 
   if (isLoading || !pr) {
     return (

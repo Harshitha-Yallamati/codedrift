@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GitPullRequest, Plus } from "lucide-react";
+import { GitPullRequest, Loader2, Plus } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { RiskBadge } from "@/components/RiskBadge";
 import { TableSkeleton } from "@/components/skeletons/Skeletons";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState, InlineError, extractErrorMessage } from "@/components/ErrorState";
 import { prApi, repoApi } from "@/lib/api";
 import { formatRelativeDate } from "@/lib/risk";
 
@@ -14,15 +15,23 @@ export function PRRiskAnalysisPage() {
   const id = Number(repoId);
   const queryClient = useQueryClient();
   const [prNumber, setPrNumber] = useState("");
+  const [analyzeError, setAnalyzeError] = useState<string | null>(null);
 
   const { data: repo } = useQuery({ queryKey: ["repo", id], queryFn: () => repoApi.get(id) });
-  const { data: prs, isLoading } = useQuery({ queryKey: ["prs", id], queryFn: () => prApi.list(id) });
+  const {
+    data: prs,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({ queryKey: ["prs", id], queryFn: () => prApi.list(id) });
 
   const analyzeMutation = useMutation({
     mutationFn: (num: number) => prApi.analyze(id, num),
     onSuccess: () => {
+      setAnalyzeError(null);
       setTimeout(() => queryClient.invalidateQueries({ queryKey: ["prs", id] }), 4000);
     },
+    onError: (err) => setAnalyzeError(extractErrorMessage(err, "Couldn't analyze this pull request.")),
   });
 
   return (
@@ -40,15 +49,24 @@ export function PRRiskAnalysisPage() {
             className="flex items-center gap-2"
           >
             <input value={prNumber} onChange={(e) => setPrNumber(e.target.value)} placeholder="PR #" className="input-field w-24 text-sm" />
-            <button type="submit" className="btn-primary text-xs">
-              <Plus size={14} /> Analyze PR
+            <button type="submit" disabled={analyzeMutation.isPending} className="btn-primary text-xs">
+              {analyzeMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+              {analyzeMutation.isPending ? "Analyzing…" : "Analyze PR"}
             </button>
           </form>
         ) : null
       }
     >
+      {analyzeError && (
+        <div className="mb-4">
+          <InlineError message={analyzeError} />
+        </div>
+      )}
+
       {isLoading ? (
         <TableSkeleton rows={5} />
+      ) : isError ? (
+        <ErrorState description="Couldn't load pull requests for this repository." onRetry={() => refetch()} />
       ) : !prs || prs.length === 0 ? (
         <EmptyState icon={GitPullRequest} title="No pull requests analyzed" description="Analyze a pull request number to see its predicted risk before merging." />
       ) : (

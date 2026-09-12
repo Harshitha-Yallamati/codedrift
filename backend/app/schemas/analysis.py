@@ -58,6 +58,7 @@ class TrendPoint(BaseModel):
 class TrendsResponse(BaseModel):
     repository_id: int
     points: list[TrendPoint]
+    has_sufficient_history: bool
 
 
 class CorrelationEntry(BaseModel):

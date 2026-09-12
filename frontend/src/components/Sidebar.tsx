@@ -22,30 +22,21 @@ const REPO_NAV = [
   { to: "analytics", label: "Analytics & Correlations", icon: BarChart3 },
 ];
 
-export function Sidebar() {
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  clsx(
+    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+    isActive ? "bg-accent-500/10 text-accent-300" : "text-slate-400 hover:bg-base-800/70 hover:text-slate-200"
+  );
+
+/** Nav content shared by the desktop sidebar and the mobile drawer. */
+export function SidebarNavContent({ onNavigate }: { onNavigate?: () => void }) {
   const { repoId } = useParams();
   const { user, logout } = useAuth();
 
   return (
-    <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-base-700/60 bg-base-950/60 backdrop-blur-sm">
-      <div className="flex items-center gap-2 px-5 py-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-500/15 text-accent-400 ring-1 ring-accent-500/30">
-          <Terminal size={16} strokeWidth={2.5} />
-        </div>
-        <span className="text-[15px] font-bold tracking-tight text-white">CodeDrift</span>
-      </div>
-
+    <>
       <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
-        <NavLink
-          to="/dashboard"
-          end
-          className={({ isActive }) =>
-            clsx(
-              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-              isActive ? "bg-accent-500/10 text-accent-300" : "text-slate-400 hover:bg-base-800/70 hover:text-slate-200"
-            )
-          }
-        >
+        <NavLink to="/dashboard" end className={navLinkClass} onClick={onNavigate}>
           <LayoutDashboard size={17} />
           Repositories
         </NavLink>
@@ -56,30 +47,13 @@ export function Sidebar() {
               This repository
             </div>
             {REPO_NAV.map(({ to, label, icon: Icon }) => (
-              <NavLink
-                key={to}
-                to={`/repos/${repoId}/${to}`}
-                className={({ isActive }) =>
-                  clsx(
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                    isActive ? "bg-accent-500/10 text-accent-300" : "text-slate-400 hover:bg-base-800/70 hover:text-slate-200"
-                  )
-                }
-              >
+              <NavLink key={to} to={`/repos/${repoId}/${to}`} className={navLinkClass} onClick={onNavigate}>
                 <Icon size={17} />
                 {label}
               </NavLink>
             ))}
             <div className="mt-1">
-              <NavLink
-                to={`/repos/${repoId}/analyze`}
-                className={({ isActive }) =>
-                  clsx(
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                    isActive ? "bg-accent-500/10 text-accent-300" : "text-slate-400 hover:bg-base-800/70 hover:text-slate-200"
-                  )
-                }
-              >
+              <NavLink to={`/repos/${repoId}/analyze`} className={navLinkClass} onClick={onNavigate}>
                 <GitBranch size={17} />
                 Run Analysis
               </NavLink>
@@ -89,15 +63,7 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-base-700/60 p-3 space-y-1">
-        <NavLink
-          to="/settings"
-          className={({ isActive }) =>
-            clsx(
-              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-              isActive ? "bg-accent-500/10 text-accent-300" : "text-slate-400 hover:bg-base-800/70 hover:text-slate-200"
-            )
-          }
-        >
+        <NavLink to="/settings" className={navLinkClass} onClick={onNavigate}>
           <SettingsIcon size={17} />
           Settings
         </NavLink>
@@ -111,6 +77,26 @@ export function Sidebar() {
           </button>
         </div>
       </div>
+    </>
+  );
+}
+
+export function SidebarLogo() {
+  return (
+    <div className="flex items-center gap-2 px-5 py-5">
+      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-500/15 text-accent-400 ring-1 ring-accent-500/30">
+        <Terminal size={16} strokeWidth={2.5} />
+      </div>
+      <span className="text-[15px] font-bold tracking-tight text-white">CodeDrift</span>
+    </div>
+  );
+}
+
+export function Sidebar() {
+  return (
+    <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-base-700/60 bg-base-950/60 backdrop-blur-sm">
+      <SidebarLogo />
+      <SidebarNavContent />
     </aside>
   );
 }

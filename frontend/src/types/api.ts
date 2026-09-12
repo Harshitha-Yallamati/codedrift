@@ -31,6 +31,8 @@ export interface Repository {
   health_score: number | null;
   risk_category_counts: Record<RiskCategory, number> | null;
   latest_run_id: number | null;
+  model_type: ModelType | null;
+  files_analyzed: number | null;
 }
 
 export interface GitHubRepoOption {
@@ -146,6 +148,7 @@ export interface TrendPoint {
 export interface TrendsResponse {
   repository_id: number;
   points: TrendPoint[];
+  has_sufficient_history: boolean;
 }
 
 export interface CorrelationEntry {

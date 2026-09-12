@@ -52,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    authApi.logout().catch(() => {});
     clearToken();
     setUser(null);
   };
@@ -77,7 +78,13 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     if (!loading && !user) navigate("/login", { replace: true });
   }, [loading, user, navigate]);
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-base-950">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-base-600 border-t-accent-500" />
+      </div>
+    );
+  }
   if (!user) return null;
   return <>{children}</>;
 }
