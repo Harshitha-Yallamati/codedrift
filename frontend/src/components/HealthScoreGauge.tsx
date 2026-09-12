@@ -6,6 +6,8 @@ export function HealthScoreGauge({ score, size = 120 }: { score: number; size?: 
   const clamped = Math.max(0, Math.min(100, score));
   const offset = circumference * (1 - clamped / 100);
   const color = healthScoreColor(clamped);
+  const showLabel = size >= 100;
+  const scoreFontSize = size >= 100 ? 24 : size >= 70 ? 18 : 14;
 
   return (
     <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
@@ -25,10 +27,10 @@ export function HealthScoreGauge({ score, size = 120 }: { score: number; size?: 
         />
       </svg>
       <div className="absolute flex flex-col items-center">
-        <span className="text-2xl font-bold font-tabular" style={{ color }}>
+        <span className="font-bold font-tabular" style={{ color, fontSize: scoreFontSize, lineHeight: 1 }}>
           {clamped.toFixed(0)}
         </span>
-        <span className="text-[10px] uppercase tracking-wider text-slate-500">Health</span>
+        {showLabel && <span className="mt-1 text-[10px] uppercase tracking-wider text-slate-500">Health</span>}
       </div>
     </div>
   );
